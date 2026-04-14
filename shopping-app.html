@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物小程序</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 18px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .coin-balance {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            position: sticky;
+            top: 56px;
+            z-index: 99;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .content {
+            padding: 12px;
+            display: none;
+            min-height: calc(100vh - 110px);
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .product-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 110px;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+        }
+
+        .product-info {
+            padding: 10px;
+        }
+
+        .product-name {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .product-price {
+            color: #667eea;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            margin-top: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .cart-item {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .cart-item-img {
+            width: 55px;
+            height: 55px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-right: 10px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .cart-item-price {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .qty-btn {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .qty {
+            min-width: 18px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .delete-btn {
+            padding: 4px 8px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+        }
+
+        .cart-empty-icon {
+            font-size: 50px;
+            margin-bottom: 12px;
+        }
+
+        .cart-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        }
+
+        .total-info {
+            flex: 1;
+        }
+
+        .total-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .total-price {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .checkout-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-product-btn {
+            position: fixed;
+            bottom: 70px;
+            right: 18px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            width: 90%;
+            max-width: 340px;
+            margin: 20px;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btns button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .cancel-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .submit-btn {
+            background: #667eea;
+            color: white;
+        }
+
+        .submit-btn2 {
+            background: #4caf50;
+            color: white;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ff6b6b;
+            color: white;
+            font-size: 10px;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            display: none;
+            z-index: 300;
+            font-size: 14px;
+        }
+
+        .toast.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .bottom-space {
+            height: 90px;
+        }
+
+        .auth-container {
+            max-width: 340px;
+            margin: 40px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .auth-title {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .task-item {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .task-info h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .task-info p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .task-reward {
+            color: #ff9800;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .task-btn {
+            padding: 6px 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .task-btn:disabled {
+            background: #ccc;
+        }
+
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .order-item {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-id {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .order-status {
+            color: #4caf50;
+            font-size: 12px;
+        }
+
+        .order-item-list {
+            font-size: 13px;
+        }
+
+        .order-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .order-total {
+            text-align: right;
+            font-size: 15px;
+            font-weight: bold;
+            color: #667eea;
+            margin-top: 8px;
+        }
+
+        .empty-tip {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .avatar {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+
+        .profile-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .menu-list {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .menu-item {
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f5f5f5;
+            font-size: 14px;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .checkin-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .checkin-btn:disabled {
+            background: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="authPage">
+        <div class="auth-container">
+            <div class="auth-title">购物小程序</div>
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-auth="login">登录</div>
+                <div class="auth-tab" data-auth="register">注册</div>
+            </div>
+            <div id="loginForm">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码">
+                </div>
+                <button class="auth-btn" id="loginBtn">登录</button>
+            </div>
+            <div id="registerForm" style="display: none;">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="regUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="regPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input type="password" id="regConfirmPassword" placeholder="请再次输入密码">
+                </div>
+                <button class="auth-btn" id="registerBtn">注册</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainPage" style="display: none;">
+        <div class="header">
+            <div class="header-content">
+                <h1>购物小程序</h1>
+                <div class="user-info">
+                    <span class="coin-balance">🪙 <span id="coinBalance">0</span></span>
+                    <button id="logoutBtn" style="background: none; border: 1px solid white; color: white; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">退出</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="products">商品</div>
+            <div class="tab" data-tab="cart" style="position: relative;">购物车<span class="cart-badge" id="cartBadge">0</span></div>
+            <div class="tab" data-tab="tasks">任务</div>
+            <div class="tab" data-tab="orders">订单</div>
+            <div class="tab" data-tab="profile">我的</div>
+        </div>
+
+        <div class="content active" id="products">
+            <div class="product-list" id="productList"></div>
+        </div>
+
+        <div class="content" id="cart">
+            <div id="cartList"></div>
+            <div class="cart-footer" id="cartFooter" style="display: none;">
+                <div class="total-info">
+                    <div class="total-label">合计</div>
+                    <div class="total-price">¥<span id="totalPrice">0</span></div>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn">结算</button>
+            </div>
+        </div>
+
+        <div class="content" id="tasks">
+            <div class="task-list" id="taskList"></div>
+        </div>
+
+        <div class="content" id="orders">
+            <div class="order-list" id="orderList"></div>
+        </div>
+
+        <div class="content" id="profile">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="avatar" id="avatar">👤</div>
+                    <div>
+                        <div class="profile-name" id="profileName">用户</div>
+                        <div style="font-size: 12px; color: #666;">普通会员</div>
+                    </div>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="orderCount">0</div>
+                        <div class="stat-label">订单数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalSpent">¥0</div>
+                        <div class="stat-label">总消费</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-card">
+                <button class="checkin-btn" id="checkinBtn">🎁 每日签到 (+50金币)</button>
+            </div>
+
+            <div class="menu-list">
+                <div class="menu-item" id="clearDataBtn">
+                    <span>清除所有数据</span>
+                    <span style="color: #ff6b6b;">></span>
+                </div>
+            </div>
+
+            <div class="bottom-space"></div>
+        </div>
+
+        <button class="add-product-btn" id="addProductBtn">+</button>
+    </div>
+
+    <div class="modal" id="addProductModal">
+        <div class="modal-content">
+            <div class="modal-title">添加商品</div>
+            <div class="form-group">
+                <label>选择图标</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 80px; overflow-y: auto; padding: 8px; border: 1px solid #ddd; border-radius: 8px;" id="iconPicker"></div>
+            </div>
+            <div class="form-group">
+                <label>商品名称</label>
+                <input type="text" id="newProductName" placeholder="输入商品名称">
+            </div>
+            <div class="form-group">
+                <label>价格 (元)</label>
+                <input type="number" id="newProductPrice" placeholder="输入价格">
+            </div>
+            <div class="modal-btns">
+                <button class="cancel-btn" id="cancelAdd">取消</button>
+                <button class="submit-btn" id="confirmAdd">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="checkoutModal">
+        <div class="modal-content">
+            <div class="modal-title">确认购买</div>
+            <p style="text-align: center; margin-bottom: 14px; color: #666;">
+                共 <span id="checkoutCount">0</span> 件商品
+            </p>
+            <p style="text-align: center; margin-bottom: 14px; font-size: 22px; color: #667eea; font-weight: bold;">
+                总价: ¥<span id="checkoutTotal">0</span>
+            </p>
+            <p style="text-align: center; margin-bottom: 14px; font-size: 13px; color: #666;">
+                余额: 🪙 <span id="checkoutBalance">0</span>
+            </p>
+            <div class="modal-btns">
+                <button class="cancel-btn" id="cancelCheckout">取消</button>
+                <button class="submit-btn2" id="confirmCheckout">确认购买</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-title">购买成功！</div>
+            <div style="background: #f5f5f5; border-radius: 8px; padding: 12px; margin-bottom: 14px; font-size: 12px; color: #666;">
+                <p>订单号: <span id="orderId"></span></p>
+                <p>时间: <span id="orderTime"></span></p>
+                <p>商品: <span id="orderItems"></span></p>
+                <p>总价: ¥<span id="orderTotal"></span></p>
+            </div>
+            <p style="text-align: center; color: #667eea; font-weight: bold; margin-bottom: 14px;">
+                订单信息已保存！
+            </p>
+            <button class="submit-btn" id="closeOrderModal" style="width: 100%;">确定</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const defaultProducts = [
+            { id: 1, name: 'iPhone 15 Pro', price: 7999, icon: '📱' },
+            { id: 2, name: 'MacBook Air', price: 9499, icon: '💻' },
+            { id: 3, name: 'AirPods Pro', price: 1999, icon: '🎧' },
+            { id: 4, name: 'iPad Air', price: 4599, icon: '📱' },
+            { id: 5, name: 'Apple Watch', price: 2999, icon: '⌚' },
+            { id: 6, name: '华为手机', price: 5999, icon: '📱' }
+        ];
+
+        const icons = ['📱', '💻', '🎧', '⌚', '👟', '👔', '🎒', '👖', '🧥', '🧣', '🎒', '📷', '⌨️', '🖱️', '🖥️', '📺', '🎮', '⌚', '👓', '🕶️'];
+
+        const tasks = [
+            { id: 1, name: '每日签到', desc: '签到即可领取奖励', reward: 50, type: 'daily' },
+            { id: 2, name: '首次购物', desc: '完成第一笔订单', reward: 100, type: 'once' },
+            { id: 3, name: '浏览商品', desc: '浏览任意商品', reward: 10, type: 'daily' },
+            { id: 4, name: '邀请好友', desc: '分享小程序给好友', reward: 200, type: 'once' }
+        ];
+
+        let currentUser = null;
+        let products = [];
+        let cart = [];
+        let orders = [];
+        let selectedIcon = '📱';
+
+        function renderIconPicker() {
+            const picker = document.getElementById('iconPicker');
+            picker.innerHTML = icons.map(icon => `
+                <span class="icon-option" data-icon="${icon}" style="font-size: 22px; cursor: pointer; padding: 4px; border-radius: 4px; display: inline-block;">${icon}</span>
+            `).join('');
+            
+            document.querySelectorAll('.icon-option').forEach(el => {
+                el.onclick = function() {
+                    selectedIcon = this.dataset.icon;
+                    document.querySelectorAll('.icon-option').forEach(s => s.style.background = 'transparent');
+                    this.style.background = '#667eea';
+                }
+            });
+            
+            if (document.querySelector('.icon-option')) {
+                document.querySelector('.icon-option').style.background = '#667eea';
+            }
+        }
+
+        function init() {
+            loadProducts();
+            renderProducts();
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainPage();
+            }
+            initAuthTabs();
+            initEventListeners();
+        }
+
+        function loadProducts() {
+            const saved = localStorage.getItem('products_all');
+            products = saved ? JSON.parse(saved) : [...defaultProducts];
+        }
+
+        function saveProducts() {
+            localStorage.setItem('products_all', JSON.stringify(products));
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('active');
+            setTimeout(() => toast.classList.remove('active'), 2000);
+        }
+
+        function showMainPage() {
+            document.getElementById('authPage').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'block';
+            
+            cart = JSON.parse(localStorage.getItem('cart_' + currentUser.username)) || [];
+            orders = JSON.parse(localStorage.getItem('orders_' + currentUser.username)) || [];
+            
+            updateUI();
+            renderProducts();
+            renderTasks();
+            renderOrders();
+            renderProfile();
+        }
+
+        function updateUI() {
+            document.getElementById('coinBalance').textContent = currentUser.coins;
+            document.getElementById('cartBadge').textContent = getTotalCount();
+            document.getElementById('profileName').textContent = currentUser.username;
+        }
+
+        function initAuthTabs() {
+            document.querySelectorAll('.auth-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    if (tab.dataset.auth === 'login') {
+                        document.getElementById('loginForm').style.display = 'block';
+                        document.getElementById('registerForm').style.display = 'none';
+                    } else {
+                        document.getElementById('loginForm').style.display = 'none';
+                        document.getElementById('registerForm').style.display = 'block';
+                    }
+                });
+            });
+        }
+
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                showToast('请输入用户名和密码');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showMainPage();
+                showToast('登录成功');
+            } else {
+                showToast('用户名或密码错误');
+            }
+        });
+
+        document.getElementById('registerBtn').addEventListener('click', () => {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            
+            if (!username || !password) {
+                showToast('请输入用户名和密码');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showToast('两次密码不一致');
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            if (users.find(u => u.username === username)) {
+                showToast('用户名已存在');
+                return;
+            }
+
+            const newUser = {
+                username,
+                password,
+                coins: 100,
+                registerTime: Date.now(),
+                completedTasks: [],
+                lastCheckin: 0
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            
+            showMainPage();
+            showToast('注册成功，赠送100金币！');
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('authPage').style.display = 'block';
+            document.getElementById('mainPage').style.display = 'none';
+            showToast('已退出登录');
+        });
+
+        function renderProducts() {
+            const list = document.getElementById('productList');
+            list.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <div class="product-image" style="position: relative;">
+                        ${p.icon}
+                        <button class="delete-product-btn" onclick="deleteProduct(${p.id})" style="position: absolute; top: 4px; right: 4px; background: rgba(255,0,0,0.7); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-price">¥${p.price}</div>
+                        <button class="add-btn" onclick="addToCart(${p.id})">加入购物车</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('确定要删除这个商品吗？')) {
+                products = products.filter(p => p.id !== productId);
+                saveProducts();
+                renderProducts();
+                showToast('商品已删除');
+            }
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            
+            saveCart();
+            updateUI();
+            showToast('已添加到购物车');
+            completeTask(3);
+        }
+
+        function saveCart() {
+            localStorage.setItem('cart_' + currentUser.username, JSON.stringify(cart));
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cartList');
+            if (cart.length === 0) {
+                list.innerHTML = `
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🛒</div>
+                        <p>购物车是空的</p>
+                        <p style="font-size: 13px; margin-top: 8px;">快去挑选商品吧</p>
+                    </div>
+                `;
+                document.getElementById('cartFooter').style.display = 'none';
+                return;
+            }
+
+            list.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-img">${item.icon}</div>
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">¥${item.price}</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+                        <span class="qty">${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                        <button class="delete-btn" onclick="removeFromCart(${item.id})">删除</button>
+                    </div>
+                </div>
+            `).join('') + '<div class="bottom-space"></div>';
+
+            document.getElementById('cartFooter').style.display = 'flex';
+            document.getElementById('totalPrice').textContent = getTotalPrice();
+        }
+
+        function changeQty(productId, delta) {
+            const item = cart.find(i => i.id === productId);
+            if (!item) return;
+
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== productId);
+            }
+            
+            saveCart();
+            renderCart();
+            updateUI();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(i => i.id !== productId);
+            saveCart();
+            renderCart();
+            updateUI();
+            showToast('已删除');
+        }
+
+        function getTotalPrice() {
+            return cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+        }
+
+        function getTotalCount() {
+            return cart.reduce((sum, item) => sum + item.qty, 0);
+        }
+
+        document.getElementById('checkoutBtn').addEventListener('click', () => {
+            if (cart.length === 0) {
+                showToast('购物车是空的');
+                return;
+            }
+            document.getElementById('checkoutCount').textContent = getTotalCount();
+            document.getElementById('checkoutTotal').textContent = getTotalPrice();
+            document.getElementById('checkoutBalance').textContent = currentUser.coins;
+            document.getElementById('checkoutModal').classList.add('active');
+        });
+
+        document.getElementById('cancelCheckout').addEventListener('click', () => {
+            document.getElementById('checkoutModal').classList.remove('active');
+        });
+
+        document.getElementById('confirmCheckout').addEventListener('click', () => {
+            const total = getTotalPrice();
+            
+            if (currentUser.coins < total) {
+                showToast('金币不足，请先完成任务获取金币');
+                document.getElementById('checkoutModal').classList.remove('active');
+                return;
+            }
+
+            currentUser.coins -= total;
+            saveUser();
+
+            const orderId = 'ORD' + Date.now();
+            const order = {
+                id: orderId,
+                items: [...cart],
+                total: total,
+                time: Date.now(),
+                status: '已完成'
+            };
+            
+            orders.push(order);
+            localStorage.setItem('orders_' + currentUser.username, JSON.stringify(orders));
+
+            cart = [];
+            saveCart();
+
+            document.getElementById('checkoutModal').classList.remove('active');
+            
+            document.getElementById('orderId').textContent = orderId;
+            document.getElementById('orderTime').textContent = new Date().toLocaleString();
+            document.getElementById('orderItems').textContent = order.items.map(i => i.name + ' x' + i.qty).join(', ');
+            document.getElementById('orderTotal').textContent = total;
+            document.getElementById('orderModal').classList.add('active');
+
+            completeTask(2);
+            renderProfile();
+            renderOrders();
+            updateUI();
+        });
+
+        document.getElementById('closeOrderModal').addEventListener('click', () => {
+            document.getElementById('orderModal').classList.remove('active');
+        });
+
+        function renderOrders() {
+            const list = document.getElementById('orderList');
+            if (orders.length === 0) {
+                list.innerHTML = '<div class="empty-tip">暂无订单</div>';
+                return;
+            }
+
+            list.innerHTML = orders.slice().reverse().map(o => `
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-id">${o.id}</span>
+                        <span class="order-status">${o.status}</span>
+                    </div>
+                    <div class="order-item-list">
+                        ${o.items.map(i => `
+                            <div class="order-item-row">
+                                <span>${i.icon} ${i.name} x${i.qty}</span>
+                                <span>¥${i.price}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-total">总计: ¥${o.total}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderTasks() {
+            const list = document.getElementById('taskList');
+            list.innerHTML = tasks.map(t => {
+                const completed = currentUser.completedTasks.includes(t.id);
+                let btnText = '领取';
+                let disabled = false;
+                
+                if (t.type === 'daily') {
+                    const lastDone = currentUser.lastCheckin || 0;
+                    const today = new Date().setHours(0,0,0,0);
+                    if (lastDone >= today) {
+                        btnText = '已领取';
+                        disabled = true;
+                    }
+                } else if (completed) {
+                    btnText = '已完成';
+                    disabled = true;
+                }
+                
+                return `
+                    <div class="task-item">
+                        <div class="task-info">
+                            <h4>${t.name}</h4>
+                            <p>${t.desc}</p>
+                        </div>
+                        <span class="task-reward">+${t.reward}</span>
+                        <button class="task-btn" onclick="doTask(${t.id})" ${disabled ? 'disabled' : ''}>${btnText}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function doTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            if (task.type === 'daily') {
+                const lastDone = currentUser.lastCheckin || 0;
+                const today = new Date().setHours(0,0,0,0);
+                if (lastDone >= today) {
+                    showToast('今日已签到');
+                    return;
+                }
+                currentUser.lastCheckin = Date.now();
+            } else {
+                if (currentUser.completedTasks.includes(taskId)) {
+                    return;
+                }
+                currentUser.completedTasks.push(taskId);
+            }
+
+            currentUser.coins += task.reward;
+            saveUser();
+            updateUI();
+            renderTasks();
+            renderProfile();
+            showToast(`获得 ${task.reward} 金币！`);
+        }
+
+        function completeTask(taskId) {
+            if (!currentUser.completedTasks.includes(taskId)) {
+                currentUser.completedTasks.push(taskId);
+                saveUser();
+            }
+        }
+
+        function saveUser() {
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const idx = users.findIndex(u => u.username === currentUser.username);
+            if (idx >= 0) {
+                users[idx] = currentUser;
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+        }
+
+        document.getElementById('checkinBtn').addEventListener('click', () => {
+            doTask(1);
+        });
+
+        document.getElementById('clearDataBtn').addEventListener('click', () => {
+            if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
+                localStorage.clear();
+                location.reload();
+            }
+        });
+
+        function renderProfile() {
+            const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
+            document.getElementById('orderCount').textContent = orders.length;
+            document.getElementById('totalSpent').textContent = '¥' + totalSpent;
+            document.getElementById('avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+        }
+
+        function initEventListeners() {
+            renderIconPicker();
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+
+                    if (tab.dataset.tab === 'cart') renderCart();
+                    if (tab.dataset.tab === 'tasks') renderTasks();
+                    if (tab.dataset.tab === 'orders') renderOrders();
+                    if (tab.dataset.tab === 'profile') renderProfile();
+                });
+            });
+
+            document.getElementById('addProductBtn').addEventListener('click', () => {
+                selectedIcon = '📱';
+                document.getElementById('addProductModal').classList.add('active');
+                renderIconPicker();
+                document.getElementById('newProductName').value = '';
+                document.getElementById('newProductPrice').value = '';
+                document.getElementById('newProductName').focus();
+            });
+
+            document.getElementById('cancelAdd').addEventListener('click', () => {
+                document.getElementById('addProductModal').classList.remove('active');
+            });
+
+            document.getElementById('confirmAdd').addEventListener('click', () => {
+                const name = document.getElementById('newProductName').value.trim();
+                const price = parseFloat(document.getElementById('newProductPrice').value);
+
+                if (!name || !price || price <= 0) {
+                    showToast('请输入有效的商品名称和价格');
+                    return;
+                }
+
+                const newProduct = {
+                    id: Date.now(),
+                    name,
+                    price,
+                    icon: selectedIcon
+                };
+
+                products.push(newProduct);
+                saveProducts();
+                renderProducts();
+                document.getElementById('addProductModal').classList.remove('active');
+                showToast('商品添加成功');
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
